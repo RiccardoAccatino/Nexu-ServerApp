@@ -264,6 +264,57 @@
             };
         });
     }
-    </script>
+    
+
+fetch('/api/auth/me', { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => {
+        if (data.logged) {
+            currentUser = data.user;
+            // Mostra il bottone solo se non admin e non in timeout
+            if (!currentUser.admin && !(currentUser.timeout_until && currentUser.timeout_until > Date.now())) {
+                document.getElementById('openPostModal').style.display = 'inline-block';
+            } else {
+                document.getElementById('openPostModal').style.display = 'none';
+            }
+        } else {
+            document.getElementById('openPostModal').style.display = 'none';
+        }
+    });
+
+document.getElementById('openPostModal').addEventListener('click', function() {
+    if (currentUser && currentUser.timeout_until && currentUser.timeout_until > Date.now()) {
+        alert('Sei in timeout fino al ' + new Date(currentUser.timeout_until).toLocaleString());
+        return;
+    }
+    var myModal = new bootstrap.Modal(document.getElementById('postModal'));
+    myModal.show();
+});
+
+// Gestione invio post (upload file)
+document.getElementById('postForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (currentUser && currentUser.timeout_until && currentUser.timeout_until > Date.now()) {
+        alert('Sei in timeout fino al ' + new Date(currentUser.timeout_until).toLocaleString());
+        return;
+    }
+    const formData = new FormData(this);
+    const res = await fetch('/api/posts', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+    });
+
+    if (res.ok) {
+        loadPosts();
+        document.getElementById('postForm').reset();
+        bootstrap.Modal.getInstance(document.getElementById('postModal')).hide();
+    } else {
+        const errorText = await res.text();
+        alert('Errore nella pubblicazione del post: ' + errorText);
+    }
+});
+
+</script>
 </body>
 </html>

@@ -16,7 +16,9 @@ db.serialize(() => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL
+        password TEXT NOT NULL,
+        admin INTEGER DEFAULT 0,
+        timeout_until INTEGER
     )`);
     db.run(`CREATE TABLE IF NOT EXISTS post (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

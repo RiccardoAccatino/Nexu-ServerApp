@@ -86,6 +86,43 @@
 
     loadPost();
     loadComments();
-    </script>
+let currentUser = null;
+// Mostra il form solo se loggato e non admin e non in timeout
+fetch('/api/auth/me', { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => {
+        currentUser = data.user;
+        if (data.logged && !currentUser.admin && !(currentUser.timeout_until && currentUser.timeout_until > Date.now())) {
+            document.getElementById('commentForm').style.display = 'block';
+        } else {
+            document.getElementById('commentForm').style.display = 'none';
+        }
+    });
+
+// Gestione invio commento
+document.getElementById('commentForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (currentUser && currentUser.timeout_until && currentUser.timeout_until > Date.now()) {
+        alert('Sei in timeout fino al ' + new Date(currentUser.timeout_until).toLocaleString());
+        return;
+    }
+    const testo = this.testo.value;
+    const res = await fetch('/api/comments', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: postId, testo })
+    });
+    if (res.ok) {
+        this.reset();
+        loadComments();
+    } else {
+        const errorText = await res.text();
+        alert('Errore nell\'invio del commento: ' + errorText);
+    }
+});
+
+</script>
+
 </body>
 </html>

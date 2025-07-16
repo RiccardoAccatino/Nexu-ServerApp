@@ -27,7 +27,7 @@ router.post('/', isAuthenticated, upload.single('immagine'), postController.crea
 // Ottieni tutti i post
 router.get('/', postController.getAllPosts);
 
-// Elimina un post
+// Elimina un post (aggiornato: admin può eliminare tutti i post)
 router.delete('/:id', isAuthenticated, postController.deletePost);
 
 // Upvote/Downvote

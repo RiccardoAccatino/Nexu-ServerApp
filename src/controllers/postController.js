@@ -2,13 +2,17 @@ const db = require('../db/sqlite');
 
 exports.createPost = (req, res) => {
     const { testo } = req.body;
-    const user_id = req.session.user.id;
+    const user = req.session.user;
+    // Blocca admin dal creare post
+    if (user.admin) {
+        return res.status(403).json({ error: 'Gli admin non possono creare post.' });
+    }
     let immagine = null;
     if (req.file) {
         immagine = '/uploads/' + req.file.filename;
     }
     const sql = 'INSERT INTO post (user_id, testo, immagine) VALUES (?, ?, ?)';
-    db.run(sql, [user_id, testo, immagine], function(err) {
+    db.run(sql, [user.id, testo, immagine], function(err) {
         if (err) return res.status(500).json({ error: 'Errore creazione post' });
         res.status(201).json({ id: this.lastID });
     });
@@ -51,10 +55,11 @@ exports.getAllPosts = (req, res) => {
 
 exports.deletePost = (req, res) => {
     const postId = req.params.id;
-    const userId = req.session.user.id;
+    const user = req.session.user;
     db.get('SELECT * FROM post WHERE id = ?', [postId], (err, post) => {
         if (err || !post) return res.status(404).json({ error: 'Post non trovato' });
-        if (post.user_id !== userId) return res.status(403).json({ error: 'Non autorizzato' });
+        // Se admin può eliminare tutto, se normale solo i propri
+        if (!user.admin && post.user_id !== user.id) return res.status(403).json({ error: 'Non autorizzato' });
         db.run('DELETE FROM post WHERE id = ?', [postId], function(err) {
             if (err) return res.status(500).json({ error: 'Errore eliminazione post' });
             res.json({ success: true });
