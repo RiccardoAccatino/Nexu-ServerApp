@@ -1,198 +1,113 @@
-### Folder Structure
+# Nexu
+
+Nexu è una web application pensata per la condivisione di post e commenti, simile a un social network, sviluppata utilizzando Node.js, Express e SQLite. Il progetto offre funzionalità di registrazione, login, pubblicazione post con immagini, gestione dei commenti, profilo utente e meccaniche di voto sui contenuti.
+
+## Struttura delle Cartelle
 
 ```
-my-app/
+Nexu-ServerApp/
 │
-├── node_modules/               # Contains all npm packages
+├── node_modules/               # Dipendenze npm
 │
-├── public/                     # Static files (CSS, JS, images)
+├── public/                     # File statici accessibili dal client
 │   ├── assets/
 │   │   ├── css/
-│   │   │   └── style.css       # Main CSS file
-│   │   ├── js/
-│   │   │   └── script.js       # Main JS file
+│   │   │   └── style.css       # Foglio di stile principale
 │   │   └── img/
-│   │       └── favicon.ico     # Favicon
-│   └── index.html              # Main HTML file
+│   │       └── favicon.ico     # Icona del sito
+│   ├── uploads/                # Immagini caricate dagli utenti
+│   ├── commenti.html           # Pagina commenti post
+│   ├── esplora.html            # Pagina di esplorazione post
+│   ├── index.html              # Homepage
+│   ├── login.html              # Pagina di login
+│   ├── profilo.html            # Pagina profilo utente
+│   └── signup.html             # Pagina di registrazione
 │
-├── src/                        # Source files
-│   ├── config/                 # Configuration files
-│   │   └── db.js               # SQLite database connection
-│   │
-│   ├── controllers/            # Controllers for handling requests
-│   │   └── userController.js    # Example controller for user-related logic
-│   │
-│   ├── models/                 # Database models
-│   │   └── userModel.js        # Example user model
-│   │
-│   ├── routes/                 # Route definitions
-│   │   └── userRoutes.js       # Example user routes
-│   │
-│   ├── middleware/             # Custom middleware
-│   │   └── authMiddleware.js    # Example authentication middleware
-│   │
-│   ├── views/                  # View templates (if using a templating engine)
-│   │   └── index.ejs           # Example view file
-│   │
-│   └── app.js                  # Main application file
+├── src/                        # File sorgente lato server
+│   ├── controllers/            # Controller logica applicativa
+│   │   ├── authController.js   # Gestione autenticazione e profilo
+│   │   ├── commentController.js# Gestione commenti
+│   │   └── postController.js   # Gestione post e voti
+│   ├── db/
+│   │   └── sqlite.js           # Connessione e setup database SQLite
+│   ├── middleware/
+│   │   └── authMiddleware.js   # Middleware autenticazione utente
+│   ├── models/
+│   │   └── user.js             # Modello utente
+│   ├── routes/                 # Definizione delle rotte API
+│   │   ├── auth.js             # Rotte autenticazione/profilo
+│   │   ├── comments.js         # Rotte commenti
+│   │   └── posts.js            # Rotte post/voti
+│   └── app.js                  # Entry point dell’applicazione
 │
-├── .env                         # Environment variables
-├── .gitignore                   # Git ignore file
-├── package.json                 # NPM package file
-└── README.md                    # Project documentation
+├── package.json                # Configurazione npm e dipendenze
+├── package-lock.json           # Lockfile npm
+└── README.md                   # Documentazione del progetto
 ```
 
-### Example Code Snippets
+## Avvio dell'applicazione
 
-#### 1. `package.json`
+Per eseguire Nexu sul proprio server locale seguire questi passaggi:
 
-```json
-{
-  "name": "my-app",
-  "version": "1.0.0",
-  "description": "A Node.js web application using Express and SQLite",
-  "main": "src/app.js",
-  "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
-  },
-  "dependencies": {
-    "express": "^4.17.1",
-    "sqlite3": "^5.0.2",
-    "dotenv": "^10.0.0",
-    "body-parser": "^1.19.0"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.7"
-  }
-}
-```
+1. **Prerequisiti**
+   - Node.js installato (versione consigliata ≥ 18)
+   - npm installato
 
-#### 2. `src/config/db.js`
+2. **Installazione delle dipendenze**
 
-```javascript
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+   Nella directory principale del progetto eseguire:
+   ```
+   npm install
+   ```
 
-const db = new sqlite3.Database(path.resolve(__dirname, '../../database.db'), (err) => {
-    if (err) {
-        console.error('Error opening database ' + err.message);
-    } else {
-        console.log('Connected to the SQLite database.');
-    }
-});
+3. **Avvio del server**
 
-module.exports = db;
-```
+   Avviare il server di sviluppo con:
+   ```
+   npm start
+   ```
+   Oppure, per un riavvio automatico ad ogni modifica del codice:
+   ```
+   npm run dev
+   ```
 
-#### 3. `src/models/userModel.js`
+   Il server sarà attivo su [http://localhost:3000](http://localhost:3000).
 
-```javascript
-const db = require('../config/db');
+4. **Database**
+   Al primo avvio, il database SQLite verrà creato automaticamente nella cartella principale come `database.db` con tutte le tabelle necessarie.
 
-const User = {
-    create: (userData, callback) => {
-        const sql = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
-        db.run(sql, [userData.name, userData.email, userData.password], function(err) {
-            callback(err, this.lastID);
-        });
-    },
-    findById: (id, callback) => {
-        const sql = 'SELECT * FROM users WHERE id = ?';
-        db.get(sql, [id], (err, row) => {
-            callback(err, row);
-        });
-    },
-    // Additional methods can be added here
-};
+## Istruzioni d’uso
 
-module.exports = User;
-```
+### 1. **Registrazione e Login**
+- Accedi alla pagina principale e registrati tramite “Sign up”. È necessario fornire un nome, un’email valida, una password e la data di nascita (solo maggiorenni).
+- Dopo la registrazione, si viene autenticati automaticamente. Da questo momento è possibile esplorare, pubblicare e commentare.
 
-#### 4. `src/controllers/userController.js`
+### 2. **Esplorazione e Interazione**
+- Accedi alla sezione “Esplora” dove puoi vedere i post pubblicati dagli utenti.
+- Puoi ordinare i post per “Nuovi” o “Popolari”.
+- Tramite la barra di ricerca puoi filtrare i post per parole chiave o nome utente.
 
-```javascript
-const User = require('../models/userModel');
+### 3. **Creazione di un Post**
+- Se autenticato (e non in timeout), puoi creare un nuovo post cliccando sull’icona “+” in basso a destra su “Esplora”.
+- Puoi inserire un testo e allegare un’immagine (jpg, png, gif).
+- I post possono essere eliminati dall’autore o da un amministratore.
 
-const userController = {
-    register: (req, res) => {
-        const userData = req.body;
-        User.create(userData, (err, userId) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to register user' });
-            }
-            res.status(201).json({ id: userId });
-        });
-    },
-    getUser: (req, res) => {
-        const userId = req.params.id;
-        User.findById(userId, (err, user) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to retrieve user' });
-            }
-            res.status(200).json(user);
-        });
-    },
-    // Additional controller methods can be added here
-};
+### 4. **Commenti**
+- Cliccando sull’icona commento di un post puoi vedere e aggiungere commenti, se autenticato e non amministratore.
+- Gli amministratori non possono commentare e gli utenti in timeout sono bloccati temporaneamente dall’interagire.
 
-module.exports = userController;
-```
+### 5. **Votazione dei Post**
+- Ogni post può essere votato con “upvote” o “downvote”. Ogni utente può esprimere un solo voto per post.
 
-#### 5. `src/routes/userRoutes.js`
+### 6. **Gestione del Profilo**
+- Nella pagina “Profilo” puoi modificare il nome utente e la password (previa conferma della password attuale).
+- È possibile visualizzare le proprie informazioni di registrazione.
 
-```javascript
-const express = require('express');
-const router = express.Router();
-const userController = require('../controllers/userController');
+### 7. **Timeout e Moderazione**
+- Gli amministratori possono temporaneamente sospendere utenti irregolari tramite la funzionalità di timeout (solo via API).
 
-router.post('/register', userController.register);
-router.get('/:id', userController.getUser);
+---
 
-module.exports = router;
-```
+Per qualsiasi problema, suggerimento o richiesta di miglioramento aprire una issue o contattare gli sviluppatori.
 
-#### 6. `src/app.js`
-
-```javascript
-const express = require('express');
-const bodyParser = require('body-parser');
-const userRoutes = require('./routes/userRoutes');
-require('dotenv').config();
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// Routes
-app.use('/api/users', userRoutes);
-
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
-```
-
-### Setting Up the Database
-
-You can create a simple SQLite database with a `users` table using the following SQL commands:
-
-```sql
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL
-);
-```
-
-### Running the Application
-
-1. **Install Dependencies**: Run `npm install` to install all dependencies.
-2. **Start the Server**: Use `npm start` or `npm run dev` to start the server.
-3. **Access the API**: You can now access the API endpoints defined in your routes.
-
-This structure provides a solid foundation for building a Node.js application with Express and SQLite, allowing for easy expansion and maintenance as your application grows.
+---

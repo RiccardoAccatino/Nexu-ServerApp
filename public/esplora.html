@@ -171,8 +171,24 @@
         const container = document.getElementById('postsContainer');
         container.innerHTML = '';
         for (const post of posts) {
+            // Pulsanti admin: elimina e timeout
+            let adminButtons = '';
+            if (currentUser && currentUser.admin) {
+                adminButtons = `
+                    <button class="btn btn-danger btn-sm delete-post" data-id="${post.id}">Elimina</button>
+                    <div class="d-inline-block ms-2">
+                      <select class="form-select d-inline timeout-select" data-user="${post.user_id}" style="width:auto;display:inline-block;">
+                        <option value="">Timeout...</option>
+                        <option value="1w">1 settimana</option>
+                        <option value="1m">1 mese</option>
+                        <option value="1y">1 anno</option>
+                      </select>
+                      <button class="btn btn-warning btn-sm timeout-btn" data-user="${post.user_id}" style="display:none;">Applica</button>
+                    </div>
+                `;
+            }
             container.innerHTML += `
-  <div class="container mt-5">
+              <div class="container mt-5">
                 <div class="row">
                   <div class="col-sm-4 m-auto">
                     <div class="card post">
@@ -180,32 +196,34 @@
                         <h4 class="card-title">@${post.user_name ? post.user_name : 'Utente'}</h4>
                         <p class="card-text">${post.testo || ''}</p>
                         ${post.immagine ? `<img src="${post.immagine}" class="img-fluid" style=""> <br>` : ''}
-                            
-                            <button class="btn btn-link upvote" data-id="${post.id}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#A3E635" class="bi bi-arrow-up" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V3.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 3.707V11.5A.5.5 0 0 0 8 12z"/>
-                                </svg>
-                            </button>
-                            <span class="votes">${post.votes}</span>
-                            <button class="btn btn-link downvote" data-id="${post.id}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#7C3AED" class="bi bi-arrow-down" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v7.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 1 1 .708-.708L7.5 12.293V4.5A.5.5 0 0 1 8 4z"/>
-                                </svg>
-                            </button>
-                            <button class="btn btn-link comment-link" data-id="${post.id}" title="Commenta">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-left" viewBox="0 0 16 16">
-                          <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
-                        </svg></button>
-                                                    ${currentUser && post.user_id === currentUser.id ? `
+                        <button class="btn btn-link upvote" data-id="${post.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#A3E635" class="bi bi-arrow-up" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V3.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 3.707V11.5A.5.5 0 0 0 8 12z"/>
+                            </svg>
+                        </button>
+                        <span class="votes">${post.votes}</span>
+                        <button class="btn btn-link downvote" data-id="${post.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#7C3AED" class="bi bi-arrow-down" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v7.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 1 1 .708-.708L7.5 12.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                        </button>
+                        <button class="btn btn-link comment-link" data-id="${post.id}" title="Commenta">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-left" viewBox="0 0 16 16">
+                      <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
+                    </svg></button>
+                        ${!currentUser?.admin && currentUser && post.user_id === currentUser.id ? `
                                 <button class="btn btn-danger btn-sm delete-post" data-id="${post.id}">Elimina</button>
                             ` : ''}
+                        ${adminButtons}
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>    `;
+              </div>    
+            `;
         }
         addPostListeners();
+        addAdminListeners();
     }
     // Carica i post subito all'apertura della pagina
     loadPosts();
@@ -264,57 +282,98 @@
             };
         });
     }
-    
 
-fetch('/api/auth/me', { credentials: 'include' })
-    .then(res => res.json())
-    .then(data => {
-        if (data.logged) {
-            currentUser = data.user;
-            // Mostra il bottone solo se non admin e non in timeout
-            if (!currentUser.admin && !(currentUser.timeout_until && currentUser.timeout_until > Date.now())) {
-                document.getElementById('openPostModal').style.display = 'inline-block';
+    // Listener admin per timeout
+    function addAdminListeners() {
+        if (!currentUser || !currentUser.admin) return;
+        // Timeout: mostra il bottone solo se selezionato un valore
+        document.querySelectorAll('.timeout-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const btn = this.parentElement.querySelector('.timeout-btn');
+                if (this.value) btn.style.display = 'inline-block';
+                else btn.style.display = 'none';
+            });
+        });
+        // Timeout: invio richiesta
+        document.querySelectorAll('.timeout-btn').forEach(btn => {
+            btn.onclick = async function() {
+                const select = btn.parentElement.querySelector('.timeout-select');
+                const userId = btn.dataset.user;
+                const duration = select.value;
+                if (!duration) return;
+                if (!confirm(`Vuoi mettere in timeout questo utente per ${select.options[select.selectedIndex].text}?`)) return;
+                try {
+                    const res = await fetch(`/api/auth/timeout/${userId}`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ duration })
+                    });
+                    if (res.ok) {
+                        alert('Timeout applicato!');
+                    } else {
+                        const data = await res.json();
+                        alert('Errore timeout: ' + (data.error || res.statusText));
+                    }
+                } catch (e) {
+                    alert('Errore timeout');
+                }
+                select.value = '';
+                btn.style.display = 'none';
+            };
+        });
+    }
+
+    // (Re)carica currentUser e aggiorna bottone matita in base a ruolo/timeout
+    fetch('/api/auth/me', { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.logged) {
+                currentUser = data.user;
+                // Mostra il bottone solo se non admin e non in timeout
+                if (!currentUser.admin && !(currentUser.timeout_until && currentUser.timeout_until > Date.now())) {
+                    document.getElementById('openPostModal').style.display = 'inline-block';
+                } else {
+                    document.getElementById('openPostModal').style.display = 'none';
+                }
             } else {
                 document.getElementById('openPostModal').style.display = 'none';
             }
+        });
+
+    document.getElementById('openPostModal').addEventListener('click', function() {
+        if (currentUser && currentUser.timeout_until && currentUser.timeout_until > Date.now()) {
+            alert('Sei in timeout fino al ' + new Date(currentUser.timeout_until).toLocaleString());
+            return;
+        }
+        var myModal = new bootstrap.Modal(document.getElementById('postModal'));
+        myModal.show();
+    });
+
+    // Gestione invio post (upload file)
+    document.getElementById('postForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (currentUser && currentUser.timeout_until && currentUser.timeout_until > Date.now()) {
+            alert('Sei in timeout fino al ' + new Date(currentUser.timeout_until).toLocaleString());
+            return;
+        }
+        const formData = new FormData(this);
+        const res = await fetch('/api/posts', {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+        });
+
+        if (res.ok) {
+            loadPosts();
+            document.getElementById('postForm').reset();
+            bootstrap.Modal.getInstance(document.getElementById('postModal')).hide();
         } else {
-            document.getElementById('openPostModal').style.display = 'none';
+            const errorText = await res.text();
+            alert('Errore nella pubblicazione del post: ' + errorText);
         }
     });
 
-document.getElementById('openPostModal').addEventListener('click', function() {
-    if (currentUser && currentUser.timeout_until && currentUser.timeout_until > Date.now()) {
-        alert('Sei in timeout fino al ' + new Date(currentUser.timeout_until).toLocaleString());
-        return;
-    }
-    var myModal = new bootstrap.Modal(document.getElementById('postModal'));
-    myModal.show();
-});
-
-// Gestione invio post (upload file)
-document.getElementById('postForm')?.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    if (currentUser && currentUser.timeout_until && currentUser.timeout_until > Date.now()) {
-        alert('Sei in timeout fino al ' + new Date(currentUser.timeout_until).toLocaleString());
-        return;
-    }
-    const formData = new FormData(this);
-    const res = await fetch('/api/posts', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-    });
-
-    if (res.ok) {
-        loadPosts();
-        document.getElementById('postForm').reset();
-        bootstrap.Modal.getInstance(document.getElementById('postModal')).hide();
-    } else {
-        const errorText = await res.text();
-        alert('Errore nella pubblicazione del post: ' + errorText);
-    }
-});
-
-</script>
+    </script>
 </body>
 </html>
