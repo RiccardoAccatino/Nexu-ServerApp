@@ -19,12 +19,26 @@
         </div>
         <div class="nav-actions">
             <!-- Lente di ricerca con popover (contenuto via JS) -->
-            <button id="searchBtn" type="button" class="btn btn-outline-light ms-2"
-                data-bs-toggle="popover" data-bs-placement="bottom" title="Cerca post" data-bs-html="true">
+            <button id="searchBtn" type="button" class="btn btn-outline-light ms-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#7C3AED" class="bi bi-search lente" viewBox="0 0 16 16">
                     <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
                 </svg>
             </button>
+            <!-- SEARCH MENU collegato -->
+            <div class="collapse position-absolute" id="searchMenu" style="right:0; z-index:1050; width:20vw;">
+                <form class="p-3 text-light" id="searchForm" autocomplete="off">
+                    <div class="mb-3">
+                        <label for="searchKeywords" class="form-label">Parole chiave</label>
+                        <input type="text" class="form-control" id="searchKeywords" placeholder="Cerca...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="searchProfile" class="form-label">Profilo</label>
+                        <input type="text" class="form-control" id="searchProfile" placeholder="Nome profilo">
+                    </div>
+                    <button type="submit" class="btn btn-search w-100">Cerca</button>
+                    <button type="button" class="btn btn-secondary w-100 mt-2" id="resetSearchMenu">Reset</button>
+                </form>
+            </div>
             <!-- Icona profilo -->
             <a href="profilo.html">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-person-fill profile" viewBox="0 0 16 16">
@@ -92,26 +106,8 @@
         myModal.show();
     });
 
-    // Ricerca con popover (contenuto via JS)
-    const searchBtn = document.getElementById('searchBtn');
-    const popoverContent = `
-        <input id="searchText" class="form-control mb-2" placeholder="Parola chiave">
-        <input id="searchUser" class="form-control mb-2" placeholder="Nome utente">
-        <button id="doSearch" class="btn btn-primary w-100">Cerca</button>
-        <button id="resetSearch" class="btn btn-secondary w-100 mt-2">Reset</button>
-    `;
 
-    // Distruggi eventuale popover già esistente
-    if (bootstrap.Popover.getInstance(searchBtn)) {
-        bootstrap.Popover.getInstance(searchBtn).dispose();
-    }
 
-    // Inizializza popover con contenuto HTML
-    const popover = new bootstrap.Popover(searchBtn, {
-        trigger: 'focus',
-        html: true,
-        content: popoverContent
-    });
 
     let searchParams = {};
     let sortOrder = "new"; // default: mostra i più nuovi
@@ -372,6 +368,51 @@
             const errorText = await res.text();
             alert('Errore nella pubblicazione del post: ' + errorText);
         }
+    });
+            // --- SEARCH MENU JS LOGIC ---
+    const searchBtn = document.getElementById('searchBtn');
+    const searchMenu = document.getElementById('searchMenu');
+    let searchMenuCollapse = new bootstrap.Collapse(searchMenu, { toggle: false });
+
+    // Mostra/nascondi il search menu al click della lente
+    searchBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (searchMenu.classList.contains('show')) {
+            searchMenuCollapse.hide();
+        } else {
+            searchMenuCollapse.show();
+        }
+    });
+    // Chiudi il search menu se clicchi fuori
+    document.addEventListener('click', (e) => {
+        if (
+            searchMenu.classList.contains('show') &&
+            !searchMenu.contains(e.target) &&
+            e.target !== searchBtn
+        ) {
+            searchMenuCollapse.hide();
+        }
+    });
+
+    // Ricerca post tramite il search menu (sia parole chiave che profilo)
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const testo = document.getElementById('searchKeywords').value.trim();
+        const user = document.getElementById('searchProfile').value.trim();
+        searchParams = {};
+        if (testo) searchParams.testo = testo;
+        if (user) searchParams.user = user;
+        loadPosts();
+        searchMenuCollapse.hide();
+    });
+
+    // Pulsante reset nel menu
+    document.getElementById('resetSearchMenu').addEventListener('click', function() {
+        document.getElementById('searchKeywords').value = '';
+        document.getElementById('searchProfile').value = '';
+        searchParams = {};
+        loadPosts();
+        searchMenuCollapse.hide();
     });
 
     </script>
