@@ -1,0 +1,254 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Esplora</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
+</head>
+<body>
+    <div class="container-fluid text-center title">
+        <a href="index.html"><h1 class="simbol">Nexu</h1></a>
+    </div>
+    <nav class="navbar">
+        <div class="nav-center">
+            <a href="#" class="nav-link">New</a>
+            <a href="#" class="nav-link">Popular</a>
+        </div>
+        <div class="nav-actions">
+            <!-- Lente di ricerca con popover (contenuto via JS) -->
+            <button id="searchBtn" type="button" class="btn btn-outline-light ms-2"
+                data-bs-toggle="popover" data-bs-placement="bottom" title="Cerca post" data-bs-html="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#7C3AED" class="bi bi-search lente" viewBox="0 0 16 16">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                </svg>
+            </button>
+            <!-- Icona profilo -->
+            <a href="profilo.html">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-person-fill profile" viewBox="0 0 16 16">
+                    <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+                </svg>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Bottone matita per aprire il popup (visibile solo se loggati) -->
+    <div class="text-end m-3">
+        <button id="openPostModal" class="btn pencilemod" style="background:none;border:none;display:none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="4vw" height="4vw" fill="currentColor" class="bi bi-plus-circle-fill agg_post" viewBox="0 0 16 16">
+          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
+        </svg>
+        </button>
+    </div>
+
+    <!-- Modal per creare un post -->
+    <div class="modal fade" id="postModal" tabindex="-1" aria-labelledby="postModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+          <div class="modal-header">
+            <h5 class="modal-title" id="postModalLabel">Crea un nuovo post</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="postForm" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label">Testo</label>
+                    <textarea class="form-control" name="testo" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Immagine</label>
+                    <input type="file" class="form-control" name="immagine" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-success">Pubblica</button>
+                <button type="button" class="btn btn-secondary" id="logoutBtn">Logout</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Qui verranno mostrati i post -->
+    <div class="container mt-5" id="postsContainer"></div>
+
+    <footer></footer>
+
+    <script>
+    let currentUser = null;
+    fetch('/api/auth/me', { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.logged) {
+                document.getElementById('openPostModal').style.display = 'inline-block';
+                currentUser = data.user;
+            } else {
+                document.getElementById('openPostModal').style.display = 'none';
+            }
+        });
+
+    document.getElementById('openPostModal').addEventListener('click', function() {
+        var myModal = new bootstrap.Modal(document.getElementById('postModal'));
+        myModal.show();
+    });
+
+    // Ricerca con popover (contenuto via JS)
+    const searchBtn = document.getElementById('searchBtn');
+const popoverContent = `
+    <input id="searchText" class="form-control mb-2" placeholder="Parola chiave">
+    <input id="searchUser" class="form-control mb-2" placeholder="Nome utente">
+    <button id="doSearch" class="btn btn-primary w-100">Cerca</button>
+    <button id="resetSearch" class="btn btn-secondary w-100 mt-2">Reset</button>
+`;
+
+// Distruggi eventuale popover già esistente
+if (bootstrap.Popover.getInstance(searchBtn)) {
+    bootstrap.Popover.getInstance(searchBtn).dispose();
+}
+
+// Inizializza popover con contenuto HTML
+const popover = new bootstrap.Popover(searchBtn, {
+    trigger: 'focus',
+    html: true,
+    content: popoverContent
+});
+
+    let searchParams = {};
+
+    document.addEventListener('shown.bs.popover', function (e) {
+        if (e.target.id === 'searchBtn') {
+            setTimeout(() => {
+                const popoverEl = document.querySelector('.popover');
+                if (!popoverEl) return;
+                const doSearchBtn = popoverEl.querySelector('#doSearch');
+                const resetSearchBtn = popoverEl.querySelector('#resetSearch');
+                const searchText = popoverEl.querySelector('#searchText');
+                const searchUser = popoverEl.querySelector('#searchUser');
+
+                if (doSearchBtn && resetSearchBtn && searchText && searchUser) {
+                    doSearchBtn.onclick = async function() {
+                        searchParams = {
+                            testo: searchText.value.trim(),
+                            user: searchUser.value.trim()
+                        };
+                        loadPosts();
+                        searchBtn.blur(); // chiudi popover
+                    };
+                    resetSearchBtn.onclick = function() {
+                        searchParams = {};
+                        searchText.value = '';
+                        searchUser.value = '';
+                        loadPosts();
+                        searchBtn.blur();
+                    };
+                }
+            }, 150); // aumenta leggermente il delay per sicurezza
+        }
+    });
+
+    async function loadPosts() {
+        let url = '/api/posts';
+        const params = [];
+        if (searchParams.testo) params.push('testo=' + encodeURIComponent(searchParams.testo));
+        if (searchParams.user) params.push('user=' + encodeURIComponent(searchParams.user));
+        if (params.length) url += '?' + params.join('&');
+        const res = await fetch(url);
+        const posts = await res.json();
+        const container = document.getElementById('postsContainer');
+        container.innerHTML = '';
+        for (const post of posts) {
+            container.innerHTML += `
+  <div class="container mt-5">
+                <div class="row">
+                  <div class="col-sm-4 m-auto">
+                    <div class="card post">
+                      <div class="card-body">
+                        <h4 class="card-title">@${post.user_name ? post.user_name : 'Utente'}</h4>
+                        <p class="card-text">${post.testo || ''}</p>
+                        ${post.immagine ? `<img src="${post.immagine}" class="img-fluid" style=""> <br>` : ''}
+                            
+                            <button class="btn btn-link upvote" data-id="${post.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#A3E635" class="bi bi-arrow-up" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V3.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 3.707V11.5A.5.5 0 0 0 8 12z"/>
+                                </svg>
+                            </button>
+                            <span class="votes">${post.votes}</span>
+                            <button class="btn btn-link downvote" data-id="${post.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#7C3AED" class="bi bi-arrow-down" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v7.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 1 1 .708-.708L7.5 12.293V4.5A.5.5 0 0 1 8 4z"/>
+                                </svg>
+                            </button>
+                            <button class="btn btn-link comment-link" data-id="${post.id}" title="Commenta">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-left" viewBox="0 0 16 16">
+                          <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
+                        </svg></button>
+                                                    ${currentUser && post.user_id === currentUser.id ? `
+                                <button class="btn btn-danger btn-sm delete-post" data-id="${post.id}">Elimina</button>
+                            ` : ''}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>    `;
+        }
+        addPostListeners();
+    }
+    loadPosts();
+
+    // Gestione invio post (upload file)
+    document.getElementById('postForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        const res = await fetch('/api/posts', {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+        });
+
+        if (res.ok) {
+            loadPosts();
+            document.getElementById('postForm').reset();
+            bootstrap.Modal.getInstance(document.getElementById('postModal')).hide();
+        } else {
+            alert('Errore nella pubblicazione del post');
+        }
+    });
+
+    // Logout
+    document.getElementById('logoutBtn')?.addEventListener('click', async function() {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+        window.location.reload();
+    });
+
+    // Listener per upvote, downvote, elimina, commenti
+    function addPostListeners() {
+        document.querySelectorAll('.upvote').forEach(btn => {
+            btn.onclick = async function() {
+                await fetch(`/api/posts/${btn.dataset.id}/upvote`, { method: 'POST', credentials: 'include' });
+                loadPosts();
+            };
+        });
+        document.querySelectorAll('.downvote').forEach(btn => {
+            btn.onclick = async function() {
+                await fetch(`/api/posts/${btn.dataset.id}/downvote`, { method: 'POST', credentials: 'include' });
+                loadPosts();
+            };
+        });
+        document.querySelectorAll('.delete-post').forEach(btn => {
+            btn.onclick = async function() {
+                if (confirm('Sei sicuro di voler eliminare questo post?')) {
+                    await fetch(`/api/posts/${btn.dataset.id}`, { method: 'DELETE', credentials: 'include' });
+                    loadPosts();
+                }
+            };
+        });
+        document.querySelectorAll('.comment-link').forEach(btn => {
+            btn.onclick = function() {
+                window.location.href = `commenti.html?post_id=${btn.dataset.id}`;
+            };
+        });
+    }
+    </script>
+</body>
+</html>

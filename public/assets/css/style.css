@@ -1,0 +1,148 @@
+body{
+    background-color: black; 
+}
+footer{
+  background-color: #1F2937;
+  color: white;
+}
+.title{
+    color: #7C3AED;
+    font-size: 20vw;
+    margin-top: 5vw;
+
+}
+
+.simbol{
+  color: #7C3AED;
+  font-size: 5vw;
+  margin-top: 2vw;
+
+}
+
+.punchline{
+    color: #A3E635;
+    font-size: 4vw;
+    margin-top: -3vw;
+}
+
+
+.nav-link{
+    color: white;
+}
+.nav-link:hover {
+    color: #A3E635; /* Cambia il colore del testo */
+  }
+.navbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 1vw;
+    background-color: #1F2937;
+
+  }
+  
+  .nav-center {
+    display: flex;
+    gap: 2vw;
+  }
+  
+  .nav-actions {
+    position: absolute;
+    right: 1vw;
+    display: flex;
+    gap: 1vw;
+  }
+  
+  .nav-btn {
+    padding: 0.5vw 1vw;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .nav-btn.login {
+    background-color: transparent;
+    color: #E0E7FF;
+    border: 1px solid #7C3AED;
+  }
+  
+  .nav-btn.signup {
+    background-color: #A3E635;
+    color: #000;
+  }
+
+  .post{
+    background-color: #1F2937;
+    color: white;
+  }
+  
+  a{
+    text-decoration: none;
+  }
+
+.agg_post{
+  color: #A3E635;
+  height: 4vw;
+  width: 4vw;
+  z-index: 1000;
+  position: fixed;
+  right: 3vw;
+  bottom: 3vw;
+}
+
+
+
+.nav-actions {
+  position: absolute;
+  right: 1vw;
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+}
+
+.lente {
+  color: #A3E635;
+  height: 3vw;
+  width: 3vw;
+  cursor: pointer;
+}
+
+.profile {
+  color: #A3E635;
+  height: 3vw;
+  width: 3vw;
+  cursor: pointer;
+}
+
+#searchMenu {
+  top: 100%; /* Posiziona il menu sotto la lente */
+  right: 0;
+  z-index: 1050;
+  width: 20vw;
+  border: 2px solid #7C3AED;
+  border-radius: 6px;
+  background-color: #1F2937;
+}
+
+.btn-search{
+  background-color: #A3E635;
+  color: #000;
+}
+
+.pencilemod{
+  color: #A3E635;
+  height: 1.5vw;
+  width: 1.5vw;
+}
+
+.spesso{
+  font-weight: bold;
+}
+
+.readfile{
+  margin-top: 1vw;
+  margin-bottom: 1vw;
+}
+
