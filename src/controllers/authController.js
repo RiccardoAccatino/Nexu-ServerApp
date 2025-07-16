@@ -4,9 +4,11 @@ const bcrypt = require('bcrypt');
 
 exports.register = (req, res, callback) => {
     const { name, email, password } = req.body;
-    // Gli admin si creano solo dal database, quindi admin = 0
     User.create({ name, email, password, admin: 0 }, (err, userId) => {
-        if (err) return callback(null);
+        if (err) {
+            console.error('Errore INSERT:', err); // <-- aggiungi questa riga!
+            return callback(null);
+        }
         User.findById(userId, (err, user) => {
             if (err) return callback(null);
             callback(user);
