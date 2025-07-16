@@ -14,8 +14,8 @@
     </div>
     <nav class="navbar">
         <div class="nav-center">
-            <a href="#" class="nav-link">New</a>
-            <a href="#" class="nav-link">Popular</a>
+            <a href="#" class="nav-link" id="sortNew">New</a>
+            <a href="#" class="nav-link" id="sortPopular">Popular</a>
         </div>
         <div class="nav-actions">
             <!-- Lente di ricerca con popover (contenuto via JS) -->
@@ -94,26 +94,39 @@
 
     // Ricerca con popover (contenuto via JS)
     const searchBtn = document.getElementById('searchBtn');
-const popoverContent = `
-    <input id="searchText" class="form-control mb-2" placeholder="Parola chiave">
-    <input id="searchUser" class="form-control mb-2" placeholder="Nome utente">
-    <button id="doSearch" class="btn btn-primary w-100">Cerca</button>
-    <button id="resetSearch" class="btn btn-secondary w-100 mt-2">Reset</button>
-`;
+    const popoverContent = `
+        <input id="searchText" class="form-control mb-2" placeholder="Parola chiave">
+        <input id="searchUser" class="form-control mb-2" placeholder="Nome utente">
+        <button id="doSearch" class="btn btn-primary w-100">Cerca</button>
+        <button id="resetSearch" class="btn btn-secondary w-100 mt-2">Reset</button>
+    `;
 
-// Distruggi eventuale popover già esistente
-if (bootstrap.Popover.getInstance(searchBtn)) {
-    bootstrap.Popover.getInstance(searchBtn).dispose();
-}
+    // Distruggi eventuale popover già esistente
+    if (bootstrap.Popover.getInstance(searchBtn)) {
+        bootstrap.Popover.getInstance(searchBtn).dispose();
+    }
 
-// Inizializza popover con contenuto HTML
-const popover = new bootstrap.Popover(searchBtn, {
-    trigger: 'focus',
-    html: true,
-    content: popoverContent
-});
+    // Inizializza popover con contenuto HTML
+    const popover = new bootstrap.Popover(searchBtn, {
+        trigger: 'focus',
+        html: true,
+        content: popoverContent
+    });
 
     let searchParams = {};
+    let sortOrder = "new"; // default: mostra i più nuovi
+
+    // Attiva i bottoni New/Popular
+    document.getElementById('sortNew').onclick = function(e) {
+        e.preventDefault();
+        sortOrder = "new";
+        loadPosts();
+    };
+    document.getElementById('sortPopular').onclick = function(e) {
+        e.preventDefault();
+        sortOrder = "popular";
+        loadPosts();
+    };
 
     document.addEventListener('shown.bs.popover', function (e) {
         if (e.target.id === 'searchBtn') {
@@ -142,7 +155,7 @@ const popover = new bootstrap.Popover(searchBtn, {
                         searchBtn.blur();
                     };
                 }
-            }, 150); // aumenta leggermente il delay per sicurezza
+            }, 150);
         }
     });
 
@@ -151,6 +164,7 @@ const popover = new bootstrap.Popover(searchBtn, {
         const params = [];
         if (searchParams.testo) params.push('testo=' + encodeURIComponent(searchParams.testo));
         if (searchParams.user) params.push('user=' + encodeURIComponent(searchParams.user));
+        if (sortOrder) params.push('sort=' + encodeURIComponent(sortOrder)); // passa sempre sortOrder
         if (params.length) url += '?' + params.join('&');
         const res = await fetch(url);
         const posts = await res.json();
@@ -193,6 +207,7 @@ const popover = new bootstrap.Popover(searchBtn, {
         }
         addPostListeners();
     }
+    // Carica i post subito all'apertura della pagina
     loadPosts();
 
     // Gestione invio post (upload file)

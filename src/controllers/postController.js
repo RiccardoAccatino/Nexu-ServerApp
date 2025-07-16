@@ -33,7 +33,16 @@ exports.getAllPosts = (req, res) => {
         params.push('%' + req.query.user + '%');
     }
     if (where.length) sql += ' WHERE ' + where.join(' AND ');
-    sql += ' GROUP BY post.id ORDER BY post.id DESC';
+    sql += ' GROUP BY post.id';
+
+    // Gestisci ordinamento
+    if (req.query.sort === "popular") {
+        sql += ' ORDER BY votes DESC, post.id DESC';
+    } else {
+        // default: più recenti
+        sql += ' ORDER BY post.id DESC';
+    }
+
     db.all(sql, params, (err, rows) => {
         if (err) return res.status(500).json({ error: 'Errore recupero post', details: err.message });
         res.json(rows);
